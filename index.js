@@ -1,8 +1,10 @@
 import { OpenAI } from "langchain/llms/openai";
 import { LLMChain } from "langchain/chains";
 import { PromptTemplate } from "langchain/prompts";
+import { AgentExecutor, initializeAgentExecutorWithOptions } from "langchain/agents";
+import { SerpAPI } from "langchain/tools";
 
-const openai_api_key = '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';
+const openai_api_key = '';
 
 const model = new OpenAI({
   temperature: 0.9,
@@ -15,13 +17,28 @@ const prompt = new PromptTemplate({
   inputVariables: ["topic"],
 });
 
+
+
 (async () => {
-  // const prompt_info = await prompt.format({
-  //     topic: 'Langchain'
-  // });
-  const chain = new LLMChain({ llm: model, prompt: prompt });
-  const response = await chain.call({
-    topic: 'Sam Altman',
+
+const tools = [
+   new SerpAPI('', {
+    location: "Austin,Texas,United States",
+    hl: "en",
+    g: "us",
+  }),
+]
+//   const chain = new LLMChain({ llm: model, prompt: prompt });
+//   const response = await chain.call({
+//     topic: 'Langchain',
+//   });
+//   console.log(response);
+
+  const agent = await initializeAgentExecutorWithOptions(tools, model, {
+    agentType: "zero-shot-react-description",
+    verbose: true,
   });
-  console.log(response);
+  const input = 'how to earn 1 lakh rupees in 2 days?';
+  const result = await agent.call({ input });
+  console.log(result);
 })();
